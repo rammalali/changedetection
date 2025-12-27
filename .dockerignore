@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Data directories (these should be mounted as volumes)
+data_dir/
+data_dir_*/
+predicted/
+aligned_output/
+*.png
+*.jpg
+*.jpeg
+
+# Checkpoints (should be mounted or copied separately)
+# Uncomment if you don't want to include checkpoints in image
+# checkpoints/
+
+# Logs
+*.log
+*.txt
+!requirements*.txt
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Jupyter
+*.ipynb_checkpoints/
+.ipynb_checkpoints/
+
+# Misc
+misc/
+*.md
+!README.md
+

@@ -1,0 +1,8 @@
+*.pyc
+*.DS_Store
+./sha256
+./sha256.pub
+data_dir*
+checkpoints/ChangeFormer_DSIFN/*
+aligned_output
+predicted
