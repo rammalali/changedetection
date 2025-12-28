@@ -83,6 +83,7 @@ RUN cd /app/lightglue/light_glue && \
     test -f pyproject.toml && \
     pip install --no-cache-dir -e .
 
+    
 # Create directories (code will be mounted as volume in development)
 RUN mkdir -p /app/checkpoints
 
