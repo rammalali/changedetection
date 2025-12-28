@@ -74,12 +74,13 @@ RUN pip install --no-cache-dir torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.
 RUN pip install --no-cache-dir -v -r requirements.txt
 
 # Install LightGlue (copy and install before application code for better caching)
-COPY lightglue /app/lightglue
-# Verify pyproject.toml exists and install in editable mode
-# Note: opencv-python requirement will be satisfied by opencv-python-headless
-RUN ls -la /app/lightglue/light_glue/ && \
-    test -f /app/lightglue/light_glue/pyproject.toml && \
-    cd /app/lightglue/light_glue && \
+# Create directory structure and copy light_glue directory
+RUN mkdir -p /app/lightglue
+COPY lightglue/light_glue /app/lightglue/light_glue
+# Install LightGlue in editable mode
+RUN cd /app/lightglue/light_glue && \
+    ls -la && \
+    test -f pyproject.toml && \
     pip install --no-cache-dir -e .
 
 # Create directories (code will be mounted as volume in development)

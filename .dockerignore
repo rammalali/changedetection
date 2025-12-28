@@ -47,6 +47,7 @@ aligned_output/
 *.log
 *.txt
 !requirements*.txt
+!lightglue/**/*.txt
 
 # OS
 .DS_Store
@@ -60,4 +61,8 @@ Thumbs.db
 misc/
 *.md
 !README.md
+
+# Explicitly include lightglue (don't exclude anything from it)
+!lightglue/
+!lightglue/**
 
