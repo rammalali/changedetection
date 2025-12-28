@@ -46,7 +46,6 @@ This project consists of:
    ```bash
    docker-compose down
    ```
-
 The backend API will be available at `http://localhost:8000`
 
 ### Option 2: Using Docker directly
