@@ -94,7 +94,7 @@ Once the backend is running, access:
 
 ## Running the Frontend
 
-### Using Docker Compose (Recommended)
+### Option 1: Using Docker Compose (Recommended)
 
 1. **Navigate to the frontend directory:**
    ```bash
@@ -122,6 +122,25 @@ Once the backend is running, access:
    ```
 
 The frontend will be available at `http://localhost:3000`
+
+### Option 2: Using npm (Development)
+
+1. **Navigate to the frontend directory:**
+   ```bash
+   cd frontend
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+
+The frontend will be available at `http://localhost:3000` (or the port specified in your Vite configuration)
 
 ## Running Both Services Together
 
@@ -164,7 +183,13 @@ Both services will be available:
 
 ### Checkpoints
 
-Make sure your model checkpoints are in the `./checkpoints/` directory before running the backend. When using Docker, the checkpoints directory is mounted as a volume in the Docker container.
+The model checkpoints will be **automatically downloaded** on first startup if they don't exist in the `./checkpoints/` directory. The weights are downloaded from:
+
+https://github.com/wgcban/ChangeFormer/releases/download/v0.1.0/CD_ChangeFormerV6_DSIFN_b16_lr0.00006_adamw_train_test_200_linear_ce_multi_train_True_multi_infer_False_shuffle_AB_False_embed_dim_256.zip
+
+If you prefer to download them manually, you can download the zip file from the URL above and extract the checkpoint files (`best_ckpt.pt`, `last_ckpt.pt`, `log.txt`, `val_acc.npy`, `train_acc.npy`) to the `./checkpoints/ChangeFormer_DSIFN/` directory.
+
+When using Docker, the checkpoints directory is mounted as a volume in the Docker container.
 
 ## Troubleshooting
 
