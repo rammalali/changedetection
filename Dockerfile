@@ -43,15 +43,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# Step 8: Install libgomp1 (for OpenMP) and libgl1 (for OpenCV) and other dependencies
+# Step 8: Install runtime libraries (OpenMP, glib for opencv-python-headless)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
-    libgl1-mesa-glx \
     libglib2.0-0 \
-    libsm6 \
-    libxext6 \
-    libxrender-dev \
-    libgthread-2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Step 9: Install pip for Python 3.9
