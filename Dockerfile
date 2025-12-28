@@ -4,32 +4,21 @@ FROM nvidia/cuda:12.4.0-runtime-ubuntu22.04
 # Set working directory
 WORKDIR /app
 
-# Install Python 3.9 and system dependencies
-RUN apt-get update && apt-get install -y \
+# Install Python 3.9 and minimal system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
     software-properties-common \
     curl \
-    && add-apt-repository ppa:deadsnakes/ppa \
-    && apt-get update && apt-get install -y \
+    && add-apt-repository -y ppa:deadsnakes/ppa \
+    && apt-get update && apt-get install -y --no-install-recommends \
     python3.9 \
     python3.9-dev \
     python3.9-distutils \
-    libgl1-mesa-glx \
-    libglib2.0-0 \
-    libsm6 \
-    libxext6 \
-    libxrender-dev \
     libgomp1 \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install pip for Python 3.9
-RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.9
-
-# Create symlinks for python
-RUN ln -s /usr/bin/python3.9 /usr/bin/python3
-RUN ln -s /usr/bin/python3.9 /usr/bin/python
-
-# Upgrade pip
-RUN pip install --upgrade pip
+    && rm -rf /var/lib/apt/lists/* \
+    && curl -sS https://bootstrap.pypa.io/get-pip.py | python3.9 \
+    && ln -sf /usr/bin/python3.9 /usr/bin/python3 \
+    && ln -sf /usr/bin/python3.9 /usr/bin/python \
+    && pip install --upgrade pip
 
 # Copy requirements first for better caching
 COPY requirements-docker.txt /app/requirements-docker.txt
@@ -40,15 +29,11 @@ RUN pip install --no-cache-dir torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.
 # Install other Python dependencies
 RUN pip install --no-cache-dir -r requirements-docker.txt
 
-# Install LightGlue
-# Copy the entire lightglue directory structure
+# Install LightGlue (copy and install before application code for better caching)
 COPY lightglue /app/lightglue
 RUN cd /app/lightglue/light_glue && pip install -e .
 
-# Copy application code
-COPY . /app/
-
-# Make sure checkpoints directory exists (will be mounted or copied)
+# Create directories (code will be mounted as volume in development)
 RUN mkdir -p /app/checkpoints
 
 # Expose FastAPI port

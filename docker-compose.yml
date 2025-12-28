@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   change-detection-api:
     build:
@@ -9,8 +7,13 @@ services:
     ports:
       - "8000:8000"
     volumes:
+      # Mount application code for development (changes reflected without rebuild)
+      # Note: This allows code changes without rebuilding the image
+      # LightGlue is already installed as a package, so mounting source is fine
+      - .:/app
       # Mount checkpoints directory (adjust path as needed)
-      - ./checkpoints:/app/checkpoints:ro
+      # Note: Not read-only to allow automatic checkpoint download
+      - ./checkpoints:/app/checkpoints
       # Optional: mount data directories if needed
       # - ./data_dir:/app/data_dir:ro
     environment:

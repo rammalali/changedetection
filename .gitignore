@@ -6,3 +6,5 @@ data_dir*
 checkpoints/ChangeFormer_DSIFN/*
 aligned_output
 predicted
+
+trash*

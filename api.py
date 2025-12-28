@@ -2,13 +2,96 @@ import os
 import tempfile
 import base64
 import zipfile
+import shutil
+import urllib.request
 from io import BytesIO
+from pathlib import Path
 from fastapi import FastAPI, UploadFile, File, Form
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 from run import run_change_detection
 
 app = FastAPI()
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, replace with specific origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+def download_and_setup_checkpoints():
+    """
+    Download pretrained weights if they don't exist in checkpoints/ChangeFormer_DSIFN
+    """
+    checkpoint_dir = Path("checkpoints/ChangeFormer_DSIFN")
+    checkpoint_file = checkpoint_dir / "best_ckpt.pt"
+    
+    # Check if checkpoint already exists
+    if checkpoint_file.exists():
+        print(f"Checkpoints already exist at {checkpoint_dir}")
+        return
+    
+    print("Checkpoints not found. Downloading pretrained weights...")
+    
+    # Create checkpoint directory
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
+    
+    # URL for pretrained weights
+    checkpoint_url = "https://github.com/wgcban/ChangeFormer/releases/download/v0.1.0/CD_ChangeFormerV6_DSIFN_b16_lr0.00006_adamw_train_test_200_linear_ce_multi_train_True_multi_infer_False_shuffle_AB_False_embed_dim_256.zip"
+    
+    # Download zip file to temporary location
+    with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as tmp_file:
+        zip_path = tmp_file.name
+        print(f"Downloading from {checkpoint_url}...")
+        urllib.request.urlretrieve(checkpoint_url, zip_path)
+        print("Download complete. Extracting...")
+    
+    # Extract zip file
+    extract_dir = tempfile.mkdtemp()
+    try:
+        with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+            zip_ref.extractall(extract_dir)
+        
+        # Find the checkpoint files in subdirectories
+        # Look for best_ckpt.pt in any subdirectory
+        checkpoint_files = ['best_ckpt.pt', 'last_ckpt.pt', 'log.txt', 'val_acc.npy', 'train_acc.npy']
+        
+        found_checkpoint_dir = None
+        for root, dirs, files in os.walk(extract_dir):
+            if 'best_ckpt.pt' in files:
+                found_checkpoint_dir = root
+                break
+        
+        if found_checkpoint_dir is None:
+            raise FileNotFoundError("Could not find checkpoint files in downloaded zip")
+        
+        print(f"Found checkpoint files in: {found_checkpoint_dir}")
+        
+        # Copy checkpoint files to the target directory
+        for filename in checkpoint_files:
+            src_path = os.path.join(found_checkpoint_dir, filename)
+            if os.path.exists(src_path):
+                dst_path = checkpoint_dir / filename
+                shutil.copy2(src_path, dst_path)
+                print(f"Copied {filename} to {checkpoint_dir}")
+            else:
+                print(f"Warning: {filename} not found in extracted files")
+        
+        print(f"Checkpoints successfully set up at {checkpoint_dir}")
+        
+    finally:
+        # Clean up temporary files
+        os.unlink(zip_path)
+        shutil.rmtree(extract_dir, ignore_errors=True)
+
+@app.on_event("startup")
+async def startup_event():
+    """Download checkpoints on startup if they don't exist"""
+    download_and_setup_checkpoints()
 
 @app.post("/change-detection")
 async def change_detection(
@@ -24,7 +107,10 @@ async def change_detection(
     Crop images in data_dir into n x n square pieces and run change detection.
     """
     if len(images_a) != len(images_b):
-        return {"error": "Number of images in A and B must be equal"}
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Number of images in A and B must be equal"}
+        )
     
     with tempfile.TemporaryDirectory() as temp_dir:
         # Create directory structure
