@@ -17,13 +17,19 @@ This project consists of:
 
 ## Prerequisites
 
+### For Docker Setup
 - **Docker** (version 20.10 or later)
 - **Docker Compose** (optional, for easier management)
 - **NVIDIA Docker** (for GPU support):
   - Install [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
   - Verify with: `docker run --rm --gpus all nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi`
 
-## Running the Backend Docker
+### For Non-Docker Setup
+- **Python 3.9**
+- **CUDA 12.4** (for GPU support, optional)
+- **pip** package manager
+
+## Running the Backend
 
 ### Option 1: Using Docker Compose (Recommended)
 
@@ -46,30 +52,39 @@ This project consists of:
    ```bash
    docker-compose down
    ```
+
 The backend API will be available at `http://localhost:8000`
 
-### Option 2: Using Docker directly
+### Option 2: Running without Docker (using uvicorn)
 
-1. **Build the image:**
+1. **Install Python dependencies:**
    ```bash
-   docker build -t change-detection-api .
+   pip install -r requirements.txt
    ```
 
-2. **Run the container with GPU support:**
+2. **Install PyTorch with CUDA support (if using GPU):**
    ```bash
-   docker run --gpus all -p 8000:8000 \
-     -v $(pwd):/app \
-     -v $(pwd)/checkpoints:/app/checkpoints \
-     change-detection-api
+   pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu124
+   ```
+   
+   **For CPU-only:**
+   ```bash
+   pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0
    ```
 
-   **For CPU-only (no GPU):**
+3. **Install LightGlue:**
    ```bash
-   docker run -p 8000:8000 \
-     -v $(pwd):/app \
-     -v $(pwd)/checkpoints:/app/checkpoints \
-     change-detection-api
+   cd lightglue/light_glue
+   pip install -e .
+   cd ../..
    ```
+
+4. **Run the API server:**
+   ```bash
+   uvicorn api:app --host 0.0.0.0 --port 8000
+   ```
+
+The backend API will be available at `http://localhost:8000`
 
 ### Backend API Documentation
 
@@ -77,9 +92,9 @@ Once the backend is running, access:
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
 
-## Running the Frontend Docker
+## Running the Frontend
 
-### Option 1: Using Docker Compose (Recommended)
+### Using Docker Compose (Recommended)
 
 1. **Navigate to the frontend directory:**
    ```bash
@@ -108,26 +123,9 @@ Once the backend is running, access:
 
 The frontend will be available at `http://localhost:3000`
 
-### Option 2: Using Docker directly
-
-1. **Navigate to the frontend directory:**
-   ```bash
-   cd frontend
-   ```
-
-2. **Build the image:**
-   ```bash
-   docker build -t change-detection-frontend .
-   ```
-
-3. **Run the container:**
-   ```bash
-   docker run -p 3000:80 change-detection-frontend
-   ```
-
 ## Running Both Services Together
 
-To run both backend and frontend simultaneously:
+### Using Docker Compose
 
 1. **Start the backend** (from project root):
    ```bash
@@ -144,6 +142,19 @@ Both services will be available:
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:8000
 
+### Mixed Setup (Backend without Docker, Frontend with Docker)
+
+1. **Start the backend** (from project root, following Option 2 above):
+   ```bash
+   uvicorn api:app --host 0.0.0.0 --port 8000
+   ```
+
+2. **Start the frontend** (from frontend directory):
+   ```bash
+   cd frontend
+   docker-compose up -d
+   ```
+
 ## Configuration
 
 ### Backend Environment Variables
@@ -153,7 +164,7 @@ Both services will be available:
 
 ### Checkpoints
 
-Make sure your model checkpoints are in the `./checkpoints/` directory before running the backend. The checkpoints directory is mounted as a volume in the Docker container.
+Make sure your model checkpoints are in the `./checkpoints/` directory before running the backend. When using Docker, the checkpoints directory is mounted as a volume in the Docker container.
 
 ## Troubleshooting
 
@@ -170,7 +181,7 @@ Make sure your model checkpoints are in the `./checkpoints/` directory before ru
 
 Change the port mapping in `docker-compose.yml` or use a different port:
 ```bash
-docker run -p 8001:8000 ...
+docker run -p 8000:8000 ...
 ```
 
 ### Frontend cannot connect to backend
