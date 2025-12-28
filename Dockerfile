@@ -56,8 +56,8 @@ RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.9
 RUN ln -sf /usr/bin/python3.9 /usr/bin/python3 && \
     ln -sf /usr/bin/python3.9 /usr/bin/python
 
-# Step 11: Upgrade pip
-RUN pip install --upgrade pip
+# Step 11: Upgrade pip and install build tools for pyproject.toml
+RUN pip install --upgrade pip setuptools wheel build
 
 # Copy requirements first for better caching
 # This layer is cached unless requirements.txt changes
@@ -75,7 +75,12 @@ RUN pip install --no-cache-dir -v -r requirements.txt
 
 # Install LightGlue (copy and install before application code for better caching)
 COPY lightglue /app/lightglue
-RUN cd /app/lightglue/light_glue && pip install -e .
+# Verify pyproject.toml exists and install in editable mode
+# Note: opencv-python requirement will be satisfied by opencv-python-headless
+RUN ls -la /app/lightglue/light_glue/ && \
+    test -f /app/lightglue/light_glue/pyproject.toml && \
+    cd /app/lightglue/light_glue && \
+    pip install --no-cache-dir -e .
 
 # Create directories (code will be mounted as volume in development)
 RUN mkdir -p /app/checkpoints
