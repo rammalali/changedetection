@@ -1,7 +1,7 @@
 <template>
   <div class="app-container">
     <header class="header">
-      <h1>🌍 Satellite Change Detection</h1>
+      <h1>🌍  Change Detection</h1>
       <p>Upload satellite images to detect changes between two time periods</p>
     </header>
 
@@ -192,13 +192,42 @@
       </div>
 
       <!-- Results Section -->
-      <section v-if="results" class="results-section">
+      <section v-if="results && results.length > 0" class="results-section">
         <h2>Results</h2>
-        <div class="results-info">
-          <p>✅ Processing complete! Download your results below.</p>
-          <button @click="downloadResults" class="download-btn">
-            📥 Download Results (ZIP)
-          </button>
+        <p class="results-success">✅ Processing complete! View your results below.</p>
+        
+        <div v-for="(result, index) in results" :key="index" class="result-item">
+          <h3>{{ result.filename }}</h3>
+          <div class="results-grid">
+            <div v-if="result.mask" class="result-image-card">
+              <h4>Mask</h4>
+              <img :src="`data:image/png;base64,${result.mask}`" alt="Mask" class="result-image">
+              <a :href="`data:image/png;base64,${result.mask}`" :download="`${result.filename}_mask.png`" class="download-image-btn">
+                📥 Download
+              </a>
+            </div>
+            <div v-if="result.color_mask" class="result-image-card">
+              <h4>Color Mask</h4>
+              <img :src="`data:image/png;base64,${result.color_mask}`" alt="Color Mask" class="result-image">
+              <a :href="`data:image/png;base64,${result.color_mask}`" :download="`${result.filename}_color_mask.png`" class="download-image-btn">
+                📥 Download
+              </a>
+            </div>
+            <div v-if="result.overlay_a" class="result-image-card">
+              <h4>Overlay A (Before)</h4>
+              <img :src="`data:image/png;base64,${result.overlay_a}`" alt="Overlay A" class="result-image">
+              <a :href="`data:image/png;base64,${result.overlay_a}`" :download="`${result.filename}_overlay_a.png`" class="download-image-btn">
+                📥 Download
+              </a>
+            </div>
+            <div v-if="result.overlay_b" class="result-image-card">
+              <h4>Overlay B (After)</h4>
+              <img :src="`data:image/png;base64,${result.overlay_b}`" alt="Overlay B" class="result-image">
+              <a :href="`data:image/png;base64,${result.overlay_b}`" :download="`${result.filename}_overlay_b.png`" class="download-image-btn">
+                📥 Download
+              </a>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -319,9 +348,9 @@ export default {
           throw new Error(errorData.error || `Server error: ${response.status}`)
         }
 
-        // Store the blob for download
-        const blob = await response.blob()
-        results.value = blob
+        // Get JSON response with base64 encoded images
+        const data = await response.json()
+        results.value = data.results || []
 
       } catch (err) {
         error.value = err.message || 'Failed to process images'
@@ -331,18 +360,6 @@ export default {
       }
     }
 
-    const downloadResults = () => {
-      if (results.value) {
-        const url = window.URL.createObjectURL(results.value)
-        const a = document.createElement('a')
-        a.href = url
-        a.download = 'change_detection_results.zip'
-        document.body.appendChild(a)
-        a.click()
-        document.body.removeChild(a)
-        window.URL.revokeObjectURL(url)
-      }
-    }
 
     return {
       imagesA,
@@ -373,8 +390,7 @@ export default {
       handleDropB,
       removeFileA,
       removeFileB,
-      processImages,
-      downloadResults
+      processImages
     }
   }
 }

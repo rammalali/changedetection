@@ -150,25 +150,43 @@ async def change_detection(
             n=n
         )
 
-        # Create a zip file with all outputs
-        zip_buffer = BytesIO()
-        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-            for filename in filenames:
-                base = os.path.splitext(filename)[0]
-                mask_path = os.path.join(output_folder, f"{base}.png")
-                color_mask_path = os.path.join(output_folder, f"{base}_color.png")
-                overlay_a_path = os.path.join(output_folder, f"{base}_A_overlay.png")
-                overlay_b_path = os.path.join(output_folder, f"{base}_B_overlay.png")
+        # Prepare results with base64 encoded images
+        results = []
+        for filename in filenames:
+            base = os.path.splitext(filename)[0]
+            mask_path = os.path.join(output_folder, f"{base}.png")
+            color_mask_path = os.path.join(output_folder, f"{base}_color.png")
+            overlay_a_path = os.path.join(output_folder, f"{base}_A_overlay.png")
+            overlay_b_path = os.path.join(output_folder, f"{base}_B_overlay.png")
 
-                if os.path.exists(mask_path):
-                    zip_file.write(mask_path, f"{base}_mask.png")
-                if os.path.exists(color_mask_path):
-                    zip_file.write(color_mask_path, f"{base}_color_mask.png")
-                if os.path.exists(overlay_a_path):
-                    zip_file.write(overlay_a_path, f"{base}_overlay_a.png")
-                if os.path.exists(overlay_b_path):
-                    zip_file.write(overlay_b_path, f"{base}_overlay_b.png")
+            result_item = {
+                "filename": base,
+                "mask": None,
+                "color_mask": None,
+                "overlay_a": None,
+                "overlay_b": None
+            }
 
-        zip_buffer.seek(0)
+            # Encode images to base64
+            if os.path.exists(mask_path):
+                with open(mask_path, 'rb') as f:
+                    result_item["mask"] = base64.b64encode(f.read()).decode('utf-8')
+            
+            if os.path.exists(color_mask_path):
+                with open(color_mask_path, 'rb') as f:
+                    result_item["color_mask"] = base64.b64encode(f.read()).decode('utf-8')
+            
+            if os.path.exists(overlay_a_path):
+                with open(overlay_a_path, 'rb') as f:
+                    result_item["overlay_a"] = base64.b64encode(f.read()).decode('utf-8')
+            
+            if os.path.exists(overlay_b_path):
+                with open(overlay_b_path, 'rb') as f:
+                    result_item["overlay_b"] = base64.b64encode(f.read()).decode('utf-8')
 
-        return StreamingResponse(zip_buffer, media_type='application/zip', headers={"Content-Disposition": "attachment; filename=change_detection_results.zip"})
+            results.append(result_item)
+
+        return JSONResponse(content={"results": results})
+
+
+# uvicorn api:app --reload  

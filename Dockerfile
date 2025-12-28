@@ -4,21 +4,54 @@ FROM nvidia/cuda:12.4.0-runtime-ubuntu22.04
 # Set working directory
 WORKDIR /app
 
-# Install Python 3.9 and minimal system dependencies
+# Step 1: Install basic tools (should be fast)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Step 2: Install software-properties-common (needed for PPA)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     software-properties-common \
-    curl \
-    && add-apt-repository -y ppa:deadsnakes/ppa \
-    && apt-get update && apt-get install -y --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
+
+# Step 3: Add deadsnakes PPA (this might be slow)
+RUN add-apt-repository -y ppa:deadsnakes/ppa
+
+# Step 4: Update package list after adding PPA
+RUN apt-get update
+
+# Step 5: Set timezone non-interactively (prevents prompts during install)
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+# Step 6: Install Python 3.9 (this might be slow)
+RUN apt-get install -y --no-install-recommends \
     python3.9 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Step 7: Install Python 3.9 dev packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.9-dev \
     python3.9-distutils \
+    && rm -rf /var/lib/apt/lists/*
+
+# Step 8: Install libgomp1 (for OpenMP) and libgl1 (for OpenCV)
+RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
-    && rm -rf /var/lib/apt/lists/* \
-    && curl -sS https://bootstrap.pypa.io/get-pip.py | python3.9 \
-    && ln -sf /usr/bin/python3.9 /usr/bin/python3 \
-    && ln -sf /usr/bin/python3.9 /usr/bin/python \
-    && pip install --upgrade pip
+    libgl1-mesa-glx \
+    && rm -rf /var/lib/apt/lists/*
+
+# Step 9: Install pip for Python 3.9
+RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.9
+
+# Step 10: Create symlinks
+RUN ln -sf /usr/bin/python3.9 /usr/bin/python3 && \
+    ln -sf /usr/bin/python3.9 /usr/bin/python
+
+# Step 11: Upgrade pip
+RUN pip install --upgrade pip
 
 # Copy requirements first for better caching
 COPY requirements-docker.txt /app/requirements-docker.txt

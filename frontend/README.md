@@ -37,7 +37,26 @@ The built files will be in the `dist` folder.
 - Loading indicator during processing
 - Results download as ZIP file
 
+## Docker
+
+### Build and Run with Docker
+
+```bash
+docker build -t change-detection-frontend .
+docker run -p 3000:80 change-detection-frontend
+```
+
+### Using Docker Compose
+
+```bash
+docker-compose up -d
+```
+
+The frontend will be available at `http://localhost:3000`
+
 ## API Configuration
 
 Make sure the backend API is running on `http://localhost:8000`. The frontend is configured to proxy requests to this endpoint.
+
+**Note:** In production, you may need to configure nginx to proxy API requests or update the API endpoint in the frontend code.
 

@@ -36,7 +36,7 @@ def align_images(img1: str, img2: str):
     # remove batch dimension
     feats0, feats1, matches01 = [rbd(x) for x in [feats0, feats1, matches01]]
 
-    score_thresh = 0.8
+    score_thresh = 0.85
 
     scores  = matches01['scores']     # (K,)
     matches = matches01['matches']    # (K, 2)
@@ -62,7 +62,7 @@ def align_images(img1: str, img2: str):
     pts0 = points0.detach().cpu().numpy().astype(np.float32)  # in image0 coords
     pts1 = points1.detach().cpu().numpy().astype(np.float32)  # in image1 coords
 
-    if len(pts0) < 8:
+    if len(pts0) < 10:
         print(f"Not enough matches for homography: {len(pts0)}. Skipping alignment.")
         # Return original images
         img0_cv = torch_to_cv_u8(image0)
