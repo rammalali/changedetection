@@ -107,67 +107,76 @@
       <section class="options-section">
         <h2>Processing Options</h2>
         <div class="options-grid">
-          <div class="option-group">
-            <label>Image Size</label>
-            <div class="radio-group">
-              <label v-for="size in [1024, 512, 256]" :key="size" class="radio-option">
-                <input 
-                  type="radio" 
-                  :value="size" 
-                  v-model="imgSize"
-                >
-                <span>{{ size }}</span>
-              </label>
+          <div class="option-card">
+            <div class="option-label">
+              <span class="label-text">Image Size</span>
+            </div>
+            <div class="option-buttons">
+              <button
+                v-for="size in [1024, 512, 256]"
+                :key="size"
+                type="button"
+                :class="['option-btn', { active: imgSize === size }]"
+                @click="imgSize = size"
+              >
+                {{ size }}
+              </button>
             </div>
           </div>
 
-          <div class="option-group">
-            <label>Number of Crops per Side (n × n)</label>
-            <div class="radio-group">
-              <label v-for="n in [1, 2, 3]" :key="n" class="radio-option">
-                <input 
-                  type="radio" 
-                  :value="n" 
-                  v-model="cropsPerSide"
-                >
-                <span>{{ n }}</span>
-              </label>
+          <div class="option-card">
+            <div class="option-label">
+              <span class="label-text">Number of Crops per Side (n × n)</span>
+            </div>
+            <div class="option-buttons">
+              <button
+                v-for="n in [1, 2, 3]"
+                :key="n"
+                type="button"
+                :class="['option-btn', { active: cropsPerSide === n }]"
+                @click="cropsPerSide = n"
+              >
+                {{ n }}
+              </button>
             </div>
           </div>
 
-          <div class="option-group">
-            <label>Number of Model Calls</label>
-            <div class="radio-group">
-              <label v-for="calls in [1, 2, 3]" :key="calls" class="radio-option">
-                <input 
-                  type="radio" 
-                  :value="calls" 
-                  v-model="callsNb"
-                >
-                <span>{{ calls }}</span>
-              </label>
+          <div class="option-card">
+            <div class="option-label">
+              <span class="label-text">Number of Model Calls</span>
+            </div>
+            <div class="option-buttons">
+              <button
+                v-for="calls in [1, 2, 3]"
+                :key="calls"
+                type="button"
+                :class="['option-btn', { active: callsNb === calls }]"
+                @click="callsNb = calls"
+              >
+                {{ calls }}
+              </button>
             </div>
           </div>
 
-          <div class="option-group">
-            <label>Crop Image</label>
-            <div class="toggle-group">
-              <label class="toggle-option">
-                <input 
-                  type="radio" 
-                  :value="true" 
-                  v-model="cropImage"
-                >
-                <span>True</span>
-              </label>
-              <label class="toggle-option">
-                <input 
-                  type="radio" 
-                  :value="false" 
-                  v-model="cropImage"
-                >
-                <span>False</span>
-              </label>
+          <div class="option-card">
+            <div class="option-label">
+              <span class="label-text">Crop Image</span>
+            </div>
+            <div class="option-buttons">
+              <button
+                type="button"
+                :class="['option-btn', { active: cropImage === true }]"
+                @click="cropImage = true"
+              >
+                True
+              </button>
+              <button
+                type="button"
+                :class="['option-btn', { active: cropImage === false }]"
+                @click="cropImage = false"
+              >
+                False
+              </button>
             </div>
           </div>
         </div>

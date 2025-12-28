@@ -9,7 +9,6 @@ services:
     volumes:
       # Mount application code for development (changes reflected without rebuild)
       # Note: This allows code changes without rebuilding the image
-      # LightGlue is already installed as a package, so mounting source is fine
       - .:/app
       # Mount checkpoints directory (adjust path as needed)
       # Note: Not read-only to allow automatic checkpoint download

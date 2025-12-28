@@ -161,7 +161,7 @@ def run_change_detection(data_dir, calls_nb=1, img_size=512, crop_image=False, o
                     all_masks[name] = []
                 all_masks[name].append(mask)
         else:
-            # Crop into n x n and run
+            # Crop into pieces where each piece size equals current_img_size
             cropped_data_dir = f"{data_dir}_cropped_{call}"
             a_dir = os.path.join(cropped_data_dir, 'A')
             b_dir = os.path.join(cropped_data_dir, 'B')
@@ -186,21 +186,27 @@ def run_change_detection(data_dir, calls_nb=1, img_size=512, crop_image=False, o
                 if width != height:
                     continue
 
-                crop_size = width // n
+                # Calculate number of crops per side based on current_img_size
+                # Each piece should be current_img_size
+                crops_per_side = width // current_img_size
+                if crops_per_side < 1:
+                    crops_per_side = 1
+                crop_size = current_img_size
+                
                 base_name = os.path.splitext(image_name)[0]
                 original_sizes[image_name] = (height, width)  # (h, w)
 
-                for j in range(n):
-                    for i in range(n):
+                for j in range(crops_per_side):
+                    for i in range(crops_per_side):
                         left = i * crop_size
                         upper = j * crop_size
-                        right = left + crop_size
-                        lower = upper + crop_size
+                        right = min(left + crop_size, width)
+                        lower = min(upper + crop_size, height)
 
                         crop_before = img_before.crop((left, upper, right, lower))
                         crop_after = img_after.crop((left, upper, right, lower))
 
-                        crop_name = f"{base_name}_{j*n + i + 1}.png"
+                        crop_name = f"{base_name}_{j*crops_per_side + i + 1}.png"
                         crop_names.append(crop_name)
 
                         crop_before.save(os.path.join(a_dir, crop_name))
@@ -220,23 +226,34 @@ def run_change_detection(data_dir, calls_nb=1, img_size=512, crop_image=False, o
                 if original not in original_sizes:
                     continue
                 base = os.path.splitext(original)[0]
-                crop_bases = [f"{base}_{k+1}" for k in range(n*n)]
+                full_h, full_w = original_sizes[original]
+                
+                # Calculate number of crops per side based on current_img_size
+                crops_per_side = full_w // current_img_size
+                if crops_per_side < 1:
+                    crops_per_side = 1
+                crop_size = current_img_size
+                total_crops = crops_per_side * crops_per_side
+                
+                crop_bases = [f"{base}_{k+1}" for k in range(total_crops)]
                 crop_masks = []
-                crop_size = original_sizes[original][1] // n  # width // n
                 for cb in crop_bases:
                     crop_name = cb + '.png'
                     if crop_name in masks:
                         mask = masks[crop_name]
                         mask = cv2.resize(mask, (crop_size, crop_size), interpolation=cv2.INTER_LINEAR)
                         crop_masks.append(mask)
-                if len(crop_masks) == n*n:
-                    full_h, full_w = original_sizes[original]
-                    crop_h = crop_w = crop_size
+                
+                if len(crop_masks) == total_crops:
                     full_mask = np.zeros((full_h, full_w), dtype=np.float32)
                     for idx, mask in enumerate(crop_masks):
-                        i = idx // n
-                        j = idx % n
-                        full_mask[i*crop_h:(i+1)*crop_h, j*crop_w:(j+1)*crop_w] = mask
+                        i = idx // crops_per_side
+                        j = idx % crops_per_side
+                        start_h = i * crop_size
+                        start_w = j * crop_size
+                        end_h = min((i + 1) * crop_size, full_h)
+                        end_w = min((j + 1) * crop_size, full_w)
+                        full_mask[start_h:end_h, start_w:end_w] = mask[:end_h-start_h, :end_w-start_w]
                     combined_masks[original] = full_mask
 
             for name, mask in combined_masks.items():

@@ -169,77 +169,91 @@ body {
 
 .options-section {
   margin-bottom: 40px;
-  padding: 30px;
-  background: #f9f9f9;
-  border-radius: 12px;
+  padding: 35px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .options-section h2 {
-  margin-bottom: 25px;
-  color: #333;
-  font-size: 1.5rem;
+  margin-bottom: 30px;
+  color: #2d3748;
+  font-size: 1.75rem;
+  font-weight: 700;
+  text-align: center;
 }
 
 .options-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 25px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
 }
 
-.option-group {
-  display: flex;
-  flex-direction: column;
+.option-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.option-group label:first-child {
+.option-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.option-label {
+  margin-bottom: 16px;
+}
+
+.label-text {
   font-weight: 600;
-  margin-bottom: 12px;
-  color: #555;
+  color: #4a5568;
   font-size: 0.95rem;
+  display: block;
 }
 
-.radio-group,
-.toggle-group {
-  display: flex;
+.option-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
   gap: 10px;
 }
 
-.radio-option,
-.toggle-option {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px 20px;
-  background: white;
-  border: 2px solid #ddd;
+.option-card:last-child .option-buttons {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.option-btn {
+  padding: 14px 20px;
+  background: #f7fafc;
+  border: 2px solid #e2e8f0;
   border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #4a5568;
+  text-align: center;
+  min-width: 0;
 }
 
-.radio-option:hover,
-.toggle-option:hover {
+.option-btn:hover {
+  background: #edf2f7;
+  border-color: #cbd5e0;
+  transform: translateY(-1px);
+}
+
+.option-btn.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-color: #667eea;
-  background: #f0f0ff;
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transform: translateY(-1px);
 }
 
-.radio-option input[type="radio"],
-.toggle-option input[type="radio"] {
-  margin-right: 8px;
-  cursor: pointer;
-}
-
-.radio-option input[type="radio"]:checked + span,
-.toggle-option input[type="radio"]:checked + span {
-  font-weight: 600;
-  color: #667eea;
-}
-
-.radio-option:has(input[type="radio"]:checked),
-.toggle-option:has(input[type="radio"]:checked) {
-  border-color: #667eea;
-  background: #e8e8ff;
+.option-btn.active:hover {
+  background: linear-gradient(135deg, #5568d3 0%, #6a3d8f 100%);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
 }
 
 .submit-section {

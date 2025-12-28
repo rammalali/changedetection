@@ -54,13 +54,17 @@ RUN ln -sf /usr/bin/python3.9 /usr/bin/python3 && \
 RUN pip install --upgrade pip
 
 # Copy requirements first for better caching
-COPY requirements-docker.txt /app/requirements-docker.txt
+# This layer is cached unless requirements.txt changes
+COPY requirements.txt /app/requirements.txt
 
 # Install PyTorch with CUDA 12.4 support first
+# This layer is cached unless PyTorch version changes
 RUN pip install --no-cache-dir torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu124
 
 # Install other Python dependencies
-RUN pip install --no-cache-dir -r requirements-docker.txt
+# This layer is cached unless requirements.txt changes
+# Docker will reuse this layer if requirements.txt hasn't changed
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Install LightGlue (copy and install before application code for better caching)
 COPY lightglue /app/lightglue

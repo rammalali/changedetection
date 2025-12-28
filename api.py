@@ -97,14 +97,24 @@ async def startup_event():
 async def change_detection(
     images_a: List[UploadFile] = File(...), 
     images_b: List[UploadFile] = File(...),
-    img_size: int = Form(1024, description="Image size for processing"),
-    n: int = Form(2, description="Number of crops per side (total crops = n x n)"),
+    img_size: int = Form(1024, description="Image size for processing (base size for first call)"),
+    n: int = Form(2, description="Number of crops per side for spatial tiling (total crops = n x n). Each piece in subsequent calls will be processed at current_img_size = img_size / (2^(call-1))"),
     combine_masks: bool = Form(True, description="Combine cropped masks back into full images"),
-    calls_nb: int = Form(2, description="Number of model calls with decreasing img_size"),
-    crop_image: bool = Form(True, description="Crop images for calls > 1")
+    calls_nb: int = Form(2, description="Number of model calls with decreasing img_size. Each call uses img_size / (2^(call-1)). For calls > 1, images are cropped into pieces where each piece size equals the current_img_size for that call."),
+    crop_image: bool = Form(True, description="Crop images for calls > 1. When True, images are cropped into pieces for processing in subsequent calls.")
 ):
     """
-    Crop images in data_dir into n x n square pieces and run change detection.
+    Run change detection with multi-scale processing.
+    
+    - Call 1: Processes full image at img_size
+    - Call 2+: Crops image into pieces where each piece size equals current_img_size
+              (current_img_size = img_size / (2^(call-1)))
+              Number of pieces = (original_size / current_img_size)^2
+    
+    Example with img_size=1024, calls_nb=3:
+    - Call 1: 1 image at 1024×1024
+    - Call 2: 4 images (2×2), each 512×512
+    - Call 3: 16 images (4×4), each 256×256
     """
     if len(images_a) != len(images_b):
         return JSONResponse(
