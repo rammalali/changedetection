@@ -1,12 +1,12 @@
 # Change Detection Project
 
-A satellite image change detection system using **ChangeFormer** and **LightGlue**, built with **Python 3.9**.
+An image change detection system using **ChangeFormer** and **LightGlue**, built with **Python 3.9**.
 
 ## Project Overview
 
 This project consists of:
 - **Backend**: FastAPI service for change detection using ChangeFormer model and LightGlue for image alignment
-- **Frontend**: Vue.js web interface for uploading and processing satellite images
+- **Frontend**: Vue.js web interface for uploading and processing aerial images
 
 ### Technologies
 - **Python 3.9**
