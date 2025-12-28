@@ -31,16 +31,27 @@ RUN apt-get install -y --no-install-recommends \
     python3.9 \
     && rm -rf /var/lib/apt/lists/*
 
-# Step 7: Install Python 3.9 dev packages
+# Step 7: Install Python 3.9 dev packages and build tools
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.9-dev \
     python3.9-distutils \
+    build-essential \
+    gcc \
+    g++ \
+    make \
+    cmake \
+    pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# Step 8: Install libgomp1 (for OpenMP) and libgl1 (for OpenCV)
+# Step 8: Install libgomp1 (for OpenMP) and libgl1 (for OpenCV) and other dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
     libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgthread-2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
 # Step 9: Install pip for Python 3.9
@@ -64,7 +75,8 @@ RUN pip install --no-cache-dir torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.
 # Install other Python dependencies
 # This layer is cached unless requirements.txt changes
 # Docker will reuse this layer if requirements.txt hasn't changed
-RUN pip install --no-cache-dir -r requirements.txt
+# Use verbose output to see which package fails
+RUN pip install --no-cache-dir -v -r requirements.txt
 
 # Install LightGlue (copy and install before application code for better caching)
 COPY lightglue /app/lightglue

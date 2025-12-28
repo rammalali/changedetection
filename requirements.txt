@@ -14,7 +14,7 @@ opencv-contrib-python==4.12.0.88
 Pillow==11.3.0
 
 # Scientific computing
-numpy==1.23.0
+numpy==1.26.4
 scipy==1.13.1
 tifffile==2023.7.10
 
