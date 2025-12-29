@@ -53,13 +53,28 @@ if [ "$BUILD" = true ]; then
     echo ""
 fi
 
+# Check for GPU availability
+echo "🔍 Checking for GPU..."
+if command -v nvidia-smi &> /dev/null; then
+    if nvidia-smi &> /dev/null; then
+        echo "   ✅ NVIDIA GPU detected"
+        GPU_AVAILABLE=true
+    else
+        echo "   ⚠️  nvidia-smi found but GPU not accessible"
+        GPU_AVAILABLE=false
+    fi
+else
+    echo "   ℹ️  nvidia-smi not found (GPU may still work if NVIDIA Container Toolkit is installed)"
+    GPU_AVAILABLE=false
+fi
+
 # Start services
 echo "📦 Starting containers..."
-if [ "$GPU" = true ]; then
-    echo "   GPU support enabled"
+if [ "$GPU" = true ] || [ "$GPU_AVAILABLE" = true ]; then
+    echo "   🚀 GPU support enabled"
     export CUDA_VISIBLE_DEVICES=0
 else
-    echo "   Running on CPU (use --gpu flag if you have NVIDIA Container Toolkit)"
+    echo "   💻 Running on CPU (GPU will be used automatically if NVIDIA Container Toolkit is installed)"
     export CUDA_VISIBLE_DEVICES=""
 fi
 

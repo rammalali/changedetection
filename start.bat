@@ -47,13 +47,33 @@ if "%BUILD%"=="true" (
     echo.
 )
 
+REM Check for GPU availability
+echo 🔍 Checking for GPU...
+where nvidia-smi >nul 2>&1
+if %ERRORLEVEL% EQU 0 (
+    nvidia-smi >nul 2>&1
+    if %ERRORLEVEL% EQU 0 (
+        echo    ✅ NVIDIA GPU detected
+        set GPU_AVAILABLE=true
+    ) else (
+        echo    ⚠️  nvidia-smi found but GPU not accessible
+        set GPU_AVAILABLE=false
+    )
+) else (
+    echo    ℹ️  nvidia-smi not found (GPU may still work if NVIDIA Container Toolkit is installed)
+    set GPU_AVAILABLE=false
+)
+
 REM Start services
 echo 📦 Starting containers...
 if "%GPU%"=="true" (
-    echo    GPU support enabled
+    echo    🚀 GPU support enabled
+    set CUDA_VISIBLE_DEVICES=0
+) else if "%GPU_AVAILABLE%"=="true" (
+    echo    🚀 GPU support enabled (auto-detected)
     set CUDA_VISIBLE_DEVICES=0
 ) else (
-    echo    Running on CPU (use --gpu flag if you have NVIDIA Container Toolkit)
+    echo    💻 Running on CPU (GPU will be used automatically if NVIDIA Container Toolkit is installed)
     set CUDA_VISIBLE_DEVICES=
 )
 

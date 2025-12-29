@@ -21,15 +21,15 @@ services:
     environment:
       - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-}
       - PYTHONUNBUFFERED=1
-    # GPU support (optional - comment out deploy section if no GPU available)
-    # Uncomment below if you have NVIDIA Container Toolkit installed
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
+    # GPU support - automatically enabled if NVIDIA Container Toolkit is installed
+    # If you don't have GPU, the application will automatically fall back to CPU
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.settimeout(1); result=s.connect_ex(('localhost', 8000)); s.close(); exit(0 if result==0 else 1)"]
