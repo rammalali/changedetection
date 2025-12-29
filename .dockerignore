@@ -59,7 +59,7 @@ Thumbs.db
 
 
 *.md
-!README.md
+README.md
 
 # Explicitly include lightglue (don't exclude anything from it)
 !lightglue/
