@@ -170,7 +170,8 @@ def seed_torch(seed=2019):
     os.environ['PYTHONHASHSEED'] = str(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
     # 加入所有随机种子后，模型更新后，中间结果还是不一样，
     # 发现这一的现象：前两轮，的结果还是一样；随着模型更新结果会变；
     # torch.backends.cudnn.benchmark = False
@@ -317,8 +318,7 @@ def mul_cls_acc(preds, targets, topk=(1,)):
         # print('pred: ', pred)
         # print('targets: ', targets)
         correct = torch.zeros([bs, maxk]).long()  # 记录预测正确label数量
-        if preds.device != torch.device(type='cpu'):
-            correct = correct.cuda()
+        correct = correct.to(preds.device)  # Use same device as preds (CPU or GPU)
         for i in range(C):
             label = i + 1
             target = targets[:, i] * label

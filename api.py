@@ -10,6 +10,7 @@ from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.responses import StreamingResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
+import torch
 from run import run_change_detection
 
 app = FastAPI()
@@ -148,6 +149,8 @@ async def change_detection(
 
         # Run change detection with provided values
         output_folder = os.path.join(temp_dir, 'predicted')
+        # Auto-detect GPU availability
+        gpu_ids = '0' if torch.cuda.is_available() else '-1'  # -1 means CPU
         run_change_detection(
             data_dir=temp_dir,
             calls_nb=calls_nb,
@@ -156,7 +159,7 @@ async def change_detection(
             output_folder=output_folder,
             project_name='ChangeFormer_DSIFN',
             checkpoint_name='best_ckpt.pt',
-            gpu_ids='0',
+            gpu_ids=gpu_ids,
             n=n
         )
 

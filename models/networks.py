@@ -115,11 +115,13 @@ def init_net(net, init_type='normal', init_gain=0.02, gpu_ids=[]):
 
     Return an initialized network.
     """
-    if len(gpu_ids) > 0:
-        assert(torch.cuda.is_available())
+    if len(gpu_ids) > 0 and torch.cuda.is_available():
         net.to(gpu_ids[0])
         if len(gpu_ids) > 1:
             net = torch.nn.DataParallel(net, gpu_ids)  # multi-GPUs
+    elif len(gpu_ids) > 0 and not torch.cuda.is_available():
+        # GPU requested but not available, use CPU instead
+        net.to('cpu')
     init_weights(net, init_type, init_gain=init_gain)
     return net
 
