@@ -18,13 +18,18 @@ def align_images(img1: str, img2: str):
         img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
         return img
 
+    # --- Detect device (GPU if available, else CPU) ---
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    if device.type == 'cpu':
+        print("⚠️  GPU not available, using CPU for image alignment (this will be slower)")
+
     # --- extractor & matcher (DISK example) ---
-    extractor = DISK(max_num_keypoints=2048).eval().cuda()
-    matcher = LightGlue(features='disk').eval().cuda()
+    extractor = DISK(max_num_keypoints=2048).eval().to(device)
+    matcher = LightGlue(features='disk').eval().to(device)
 
     # --- load images ---
-    image0 = load_image(img1).cuda()
-    image1 = load_image(img2).cuda()
+    image0 = load_image(img1).to(device)
+    image1 = load_image(img2).to(device)
 
     # --- extract features ---
     feats0 = extractor.extract(image0)
