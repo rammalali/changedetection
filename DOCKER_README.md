@@ -1,65 +1,190 @@
-# Docker Setup for Change Detection API
+# Docker Setup for Change Detection Application
 
-This directory contains Docker configuration files to run the Change Detection API in a containerized environment.
+This directory contains Docker configuration files to run both the Change Detection API (backend) and Frontend in containerized environments.
 
 ## Prerequisites
 
 1. **Docker** installed (version 20.10 or later)
 2. **Docker Compose** (optional, for easier management)
-3. **NVIDIA Docker** (for GPU support):
+3. **NVIDIA Docker** (optional, for GPU support):
    - Install [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
-   - Verify with: `docker run --rm --gpus all nvidia/cuda:11.7-base-ubuntu22.04 nvidia-smi`
+   - Verify with: `docker run --rm --gpus all nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi`
 
 ## Quick Start
 
 ### Option 1: Using Docker Compose (Recommended)
 
-1. **Build and run:**
+The easiest way to run both services together:
+
+```bash
+# Start both services
+docker-compose up -d
+
+# Or with rebuild
+docker-compose up -d --build
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+```
+
+**Access:**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API Docs: http://localhost:8000/docs
+
+### Option 2: Using Start Scripts (Docker Compose)
+
+These scripts use docker-compose to manage both services together:
+
+**Linux/Mac:**
+```bash
+# Make executable (first time only)
+chmod +x start.sh
+
+# Start both services
+./start.sh
+
+# Start with rebuild
+./start.sh --build
+
+# Start with GPU support
+./start.sh --gpu
+```
+
+**Windows:**
+```cmd
+# Start both services
+start.bat
+
+# Start with rebuild
+start.bat --build
+
+# Start with GPU support
+start.bat --gpu
+```
+
+### Option 2b: Using Standalone Start Scripts
+
+These scripts run containers separately using `host.docker.internal` for networking (useful when you want more control or are not using docker-compose):
+
+**Linux/Mac:**
+```bash
+# Make executable (first time only)
+chmod +x start-standalone.sh
+
+# Start both services separately
+./start-standalone.sh
+
+# Start with rebuild
+./start-standalone.sh --build
+
+# Start with GPU support
+./start-standalone.sh --gpu
+```
+
+**Windows:**
+```cmd
+# Start both services separately
+start-standalone.bat
+
+# Start with rebuild
+start-standalone.bat --build
+
+# Start with GPU support
+start-standalone.bat --gpu
+```
+
+**Note:** The standalone scripts automatically handle `host.docker.internal` networking:
+- On Linux: Adds `--add-host=host.docker.internal:host-gateway` flag
+- On Windows/Mac: Uses `host.docker.internal` automatically (Docker Desktop feature)
+
+### Option 3: Running Backend and Frontend Separately
+
+If you want to run the containers separately (useful for development or when you need more control):
+
+#### Backend
+
+1. **Build the backend image:**
    ```bash
-   docker-compose up --build
+   docker build -t change-detection-backend .
    ```
 
-2. **Run in detached mode:**
+2. **Run the backend container:**
+   
+   **With GPU:**
    ```bash
-   docker-compose up -d --build
+   docker run -d --name change-detection-backend \
+     --gpus all \
+     -p 8000:8000 \
+     -v $(pwd)/checkpoints:/app/checkpoints \
+     -v $(pwd):/app \
+     change-detection-backend
+   ```
+   
+   **CPU only (no GPU):**
+   ```bash
+   docker run -d --name change-detection-backend \
+     -p 8000:8000 \
+     -v $(pwd)/checkpoints:/app/checkpoints \
+     -v $(pwd):/app \
+     change-detection-backend
    ```
 
-3. **View logs:**
-   ```bash
-   docker-compose logs -f
+   **Windows (PowerShell):**
+   ```powershell
+   docker run -d --name change-detection-backend `
+     -p 8000:8000 `
+     -v ${PWD}/checkpoints:/app/checkpoints `
+     -v ${PWD}:/app `
+     change-detection-backend
    ```
 
-4. **Stop the service:**
+#### Frontend
+
+1. **Build the frontend image:**
    ```bash
-   docker-compose down
+   cd frontend
+   docker build -t change-detection-frontend .
+   cd ..
    ```
 
-The API will be available at `http://localhost:8000`
-
-### Option 2: Using Docker directly
-
-1. **Build the image:**
+2. **Run the frontend container:**
+   
+   **Linux/Mac:**
    ```bash
-   docker build -t change-detection-api .
+   docker run -d --name change-detection-frontend \
+     -p 3000:80 \
+     --add-host=host.docker.internal:host-gateway \
+     change-detection-frontend
    ```
+   
+   **Windows (Docker Desktop):**
+   ```powershell
+   docker run -d --name change-detection-frontend `
+     -p 3000:80 `
+     change-detection-frontend
+   ```
+   
+   **Note:** On Windows Docker Desktop, `host.docker.internal` works automatically. On Linux, you need the `--add-host=host.docker.internal:host-gateway` flag.
 
-2. **Run the container:**
-   ```bash
-   docker run --gpus all -p 8000:8000 \
-     -v $(pwd)/checkpoints:/app/checkpoints:ro \
-     change-detection-api
-   ```
+3. **Access the application:**
+   - Frontend: http://localhost:3000
+   - Backend API: http://localhost:8000
 
-   For CPU-only (no GPU):
-   ```bash
-   docker run -p 8000:8000 \
-     -v $(pwd)/checkpoints:/app/checkpoints:ro \
-     change-detection-api
-   ```
+#### Stop Separate Containers
+
+```bash
+# Stop and remove containers
+docker stop change-detection-backend change-detection-frontend
+docker rm change-detection-backend change-detection-frontend
+```
 
 ## API Documentation
 
-Once the container is running, access:
+Once the backend container is running, access:
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
 
@@ -67,32 +192,30 @@ Once the container is running, access:
 
 ### GPU Support
 
-The Dockerfile is configured for CUDA 11.7. If you need a different CUDA version:
+The Dockerfile is configured for CUDA 12.4. The application automatically falls back to CPU if GPU is not available.
 
-1. Update the base image in `Dockerfile`:
-   ```dockerfile
-   FROM pytorch/pytorch:2.0.1-cuda11.8-cudnn8-runtime
-   ```
-
-2. Rebuild the image
+To enable GPU support:
+1. Install NVIDIA Container Toolkit
+2. Use `--gpus all` flag when running the backend container
+3. Or uncomment the GPU section in `docker-compose.yml`
 
 ### Checkpoints
 
-The checkpoints directory is mounted as a read-only volume. Make sure your checkpoints are in the `./checkpoints/` directory before running.
+The checkpoints directory is mounted as a volume. Make sure your checkpoints are in the `./checkpoints/` directory before running. If checkpoints don't exist, they will be automatically downloaded on first run.
 
 ### Environment Variables
 
 You can customize behavior with environment variables:
 
-- `CUDA_VISIBLE_DEVICES`: GPU device ID (default: `0`)
+- `CUDA_VISIBLE_DEVICES`: GPU device ID (default: empty, auto-detects)
 - `PYTHONUNBUFFERED`: Python output buffering (default: `1`)
 
 Example:
 ```bash
-docker run --gpus all -p 8000:8000 \
+docker run -d -p 8000:8000 \
   -e CUDA_VISIBLE_DEVICES=0 \
-  -v $(pwd)/checkpoints:/app/checkpoints:ro \
-  change-detection-api
+  -v $(pwd)/checkpoints:/app/checkpoints \
+  change-detection-backend
 ```
 
 ## Troubleshooting
@@ -101,10 +224,29 @@ docker run --gpus all -p 8000:8000 \
 
 1. Verify NVIDIA Docker is installed:
    ```bash
-   docker run --rm --gpus all nvidia/cuda:11.7-base-ubuntu22.04 nvidia-smi
+   docker run --rm --gpus all nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi
    ```
 
-2. Check docker-compose.yml has GPU configuration
+2. The application will automatically use CPU if GPU is not available - check logs for device detection messages
+
+### Frontend can't connect to backend (405 errors)
+
+If running containers separately:
+- Make sure backend is running on port 8000
+- On Linux, use `--add-host=host.docker.internal:host-gateway` when running frontend
+- On Windows/Mac Docker Desktop, `host.docker.internal` works automatically
+- Or use docker-compose which handles networking automatically
+
+### Port already in use
+
+Change the port mapping:
+```bash
+# Backend on different port
+docker run -p 8001:8000 ...
+
+# Frontend on different port
+docker run -p 3001:80 ...
+```
 
 ### Out of memory errors
 
@@ -112,20 +254,13 @@ docker run --gpus all -p 8000:8000 \
 - Use CPU mode if GPU memory is insufficient
 - Adjust `img_size` parameter to process smaller images
 
-### Port already in use
-
-Change the port mapping in docker-compose.yml or use a different port:
-```bash
-docker run -p 8001:8000 ...
-```
-
 ## Building for Production
 
 For production deployment, consider:
 
-1. Using a specific tag instead of `latest`
+1. Using specific image tags instead of `latest`
 2. Setting up proper logging
-3. Adding health checks
+3. Adding health checks (already included)
 4. Using a reverse proxy (nginx) in front of the API
 5. Setting resource limits in docker-compose.yml
 
@@ -142,4 +277,3 @@ deploy:
           count: 1
           capabilities: [gpu]
 ```
-
