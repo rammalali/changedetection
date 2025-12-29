@@ -2,6 +2,35 @@
 
 An image change detection system using **ChangeFormer** and **LightGlue**, built with **Python 3.9**.
 
+## ⚠️ IMPORTANT: GPU Support Setup
+
+**If you want to use GPU acceleration**, you **MUST** install **NVIDIA Container Toolkit** first, even if you have `nvidia-smi` working on your host system.
+
+### Quick Installation (Ubuntu/Debian)
+
+```bash
+# Add NVIDIA package repositories
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add -
+curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+
+# Install nvidia-container-toolkit
+sudo apt-get update
+sudo apt-get install -y nvidia-container-toolkit
+
+# Restart Docker daemon
+sudo systemctl restart docker
+
+# Verify installation
+docker run --rm --gpus all nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi
+```
+
+If the last command shows your GPU information, NVIDIA Container Toolkit is installed correctly!
+
+**For other Linux distributions**, see: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
+
+**Note:** The application will automatically run on CPU if GPU is not available, but it will be slower. The start scripts (`start.sh` / `start.bat`) will automatically detect and enable GPU if NVIDIA Container Toolkit is installed.
+
 ## Project Overview
 
 This project consists of:

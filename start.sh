@@ -53,32 +53,56 @@ if [ "$BUILD" = true ]; then
     echo ""
 fi
 
-# Check for GPU availability
-echo "🔍 Checking for GPU..."
-if command -v nvidia-smi &> /dev/null; then
-    if nvidia-smi &> /dev/null; then
-        echo "   ✅ NVIDIA GPU detected"
-        GPU_AVAILABLE=true
+# Check for GPU and NVIDIA Container Toolkit
+echo "🔍 Checking for GPU and NVIDIA Container Toolkit..."
+NVIDIA_CONTAINER_TOOLKIT=false
+
+# Check if nvidia-smi works on host
+if command -v nvidia-smi &> /dev/null && nvidia-smi &> /dev/null; then
+    echo "   ✅ NVIDIA GPU detected on host"
+    
+    # Test if NVIDIA Container Toolkit is installed (Docker can access GPU)
+    if docker run --rm --gpus all nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi &> /dev/null; then
+        echo "   ✅ NVIDIA Container Toolkit is installed - GPU will be available in containers"
+        NVIDIA_CONTAINER_TOOLKIT=true
     else
-        echo "   ⚠️  nvidia-smi found but GPU not accessible"
-        GPU_AVAILABLE=false
+        echo "   ⚠️  NVIDIA Container Toolkit NOT installed - containers will run on CPU"
+        echo "   💡 Install it with: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html"
+        NVIDIA_CONTAINER_TOOLKIT=false
     fi
 else
-    echo "   ℹ️  nvidia-smi not found (GPU may still work if NVIDIA Container Toolkit is installed)"
-    GPU_AVAILABLE=false
+    echo "   ℹ️  No GPU detected - will run on CPU"
+    NVIDIA_CONTAINER_TOOLKIT=false
 fi
 
-# Start services
-echo "📦 Starting containers..."
-if [ "$GPU" = true ] || [ "$GPU_AVAILABLE" = true ]; then
-    echo "   🚀 GPU support enabled"
+# Create temporary docker-compose override for GPU if available
+if [ "$GPU" = true ] || [ "$NVIDIA_CONTAINER_TOOLKIT" = true ]; then
+    echo "📦 Starting containers with GPU support..."
     export CUDA_VISIBLE_DEVICES=0
+    # Create temporary override file to enable GPU
+    cat > docker-compose.override.yml <<EOF
+version: '3.8'
+services:
+  backend:
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+EOF
 else
-    echo "   💻 Running on CPU (GPU will be used automatically if NVIDIA Container Toolkit is installed)"
+    echo "📦 Starting containers on CPU..."
     export CUDA_VISIBLE_DEVICES=""
+    # Remove override file if it exists
+    rm -f docker-compose.override.yml
 fi
 
 $COMPOSE_CMD up -d
+
+# Clean up override file after starting (optional, can leave it)
+# rm -f docker-compose.override.yml
 
 echo ""
 echo "✅ Services started!"

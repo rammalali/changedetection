@@ -47,34 +47,74 @@ if "%BUILD%"=="true" (
     echo.
 )
 
-REM Check for GPU availability
-echo 🔍 Checking for GPU...
+REM Check for GPU and NVIDIA Container Toolkit
+echo 🔍 Checking for GPU and NVIDIA Container Toolkit...
+set NVIDIA_CONTAINER_TOOLKIT=false
+
+REM Check if nvidia-smi works on host
 where nvidia-smi >nul 2>&1
 if %ERRORLEVEL% EQU 0 (
     nvidia-smi >nul 2>&1
     if %ERRORLEVEL% EQU 0 (
-        echo    ✅ NVIDIA GPU detected
-        set GPU_AVAILABLE=true
+        echo    ✅ NVIDIA GPU detected on host
+        
+        REM Test if NVIDIA Container Toolkit is installed
+        docker run --rm --gpus all nvidia/cuda:12.4.0-base-ubuntu22.04 nvidia-smi >nul 2>&1
+        if %ERRORLEVEL% EQU 0 (
+            echo    ✅ NVIDIA Container Toolkit is installed - GPU will be available in containers
+            set NVIDIA_CONTAINER_TOOLKIT=true
+        ) else (
+            echo    ⚠️  NVIDIA Container Toolkit NOT installed - containers will run on CPU
+            echo    💡 Install it with: https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html
+            set NVIDIA_CONTAINER_TOOLKIT=false
+        )
     ) else (
         echo    ⚠️  nvidia-smi found but GPU not accessible
-        set GPU_AVAILABLE=false
+        set NVIDIA_CONTAINER_TOOLKIT=false
     )
 ) else (
-    echo    ℹ️  nvidia-smi not found (GPU may still work if NVIDIA Container Toolkit is installed)
-    set GPU_AVAILABLE=false
+    echo    ℹ️  No GPU detected - will run on CPU
+    set NVIDIA_CONTAINER_TOOLKIT=false
 )
 
-REM Start services
-echo 📦 Starting containers...
+REM Create temporary docker-compose override for GPU if available
 if "%GPU%"=="true" (
-    echo    🚀 GPU support enabled
+    echo 📦 Starting containers with GPU support...
     set CUDA_VISIBLE_DEVICES=0
-) else if "%GPU_AVAILABLE%"=="true" (
-    echo    🚀 GPU support enabled (auto-detected)
+    REM Create override file
+    (
+        echo version: '3.8'
+        echo services:
+        echo   backend:
+        echo     deploy:
+        echo       resources:
+        echo         reservations:
+        echo           devices:
+        echo             - driver: nvidia
+        echo               count: 1
+        echo               capabilities: [gpu]
+    ) > docker-compose.override.yml
+) else if "%NVIDIA_CONTAINER_TOOLKIT%"=="true" (
+    echo 📦 Starting containers with GPU support (auto-detected)...
     set CUDA_VISIBLE_DEVICES=0
+    REM Create override file
+    (
+        echo version: '3.8'
+        echo services:
+        echo   backend:
+        echo     deploy:
+        echo       resources:
+        echo         reservations:
+        echo           devices:
+        echo             - driver: nvidia
+        echo               count: 1
+        echo               capabilities: [gpu]
+    ) > docker-compose.override.yml
 ) else (
-    echo    💻 Running on CPU (GPU will be used automatically if NVIDIA Container Toolkit is installed)
+    echo 📦 Starting containers on CPU...
     set CUDA_VISIBLE_DEVICES=
+    REM Remove override file if it exists
+    if exist docker-compose.override.yml del docker-compose.override.yml
 )
 
 %COMPOSE_CMD% up -d
