@@ -50,6 +50,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1 \
     && rm -rf /var/lib/apt/lists/*
 
+RUN apt-get update && apt-get install ffmpeg libsm6 libxext6  -y
+
+
 # Step 9: Install pip for Python 3.9
 RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.9
 
