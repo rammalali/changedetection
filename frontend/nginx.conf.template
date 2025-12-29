@@ -11,10 +11,9 @@ server {
     gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/xml+rss application/json;
 
     # Proxy API requests to backend
-    # For standalone mode: uses host.docker.internal (works on Docker Desktop Windows/Mac)
-    # For docker-compose: the service name "backend" will be used (see docker-compose override)
+    # BACKEND_HOST will be replaced by startup script
     location /change-detection {
-        proxy_pass http://host.docker.internal:8000;
+        proxy_pass http://BACKEND_HOST:8000;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -29,7 +28,7 @@ server {
 
     # Proxy docs endpoint
     location /docs {
-        proxy_pass http://host.docker.internal:8000;
+        proxy_pass http://BACKEND_HOST:8000;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -39,7 +38,7 @@ server {
 
     # Proxy openapi endpoint
     location /openapi.json {
-        proxy_pass http://host.docker.internal:8000;
+        proxy_pass http://BACKEND_HOST:8000;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -63,3 +62,4 @@ server {
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-XSS-Protection "1; mode=block" always;
 }
+
