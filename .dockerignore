@@ -58,7 +58,7 @@ Thumbs.db
 .ipynb_checkpoints/
 
 # Misc
-misc/
+# misc/ - commented out, needed for application
 *.md
 !README.md
 
