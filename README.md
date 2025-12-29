@@ -144,30 +144,9 @@ The frontend will be available at `http://localhost:3000` (or the port specified
 
 ## Running Both Services Together
 
-### Option 1: Using Docker Compose (Recommended)
+### Option 1: Using Start Scripts (Recommended)
 
 The easiest way to run both services together:
-
-```bash
-# Start both services
-docker-compose up -d
-
-# Or with rebuild
-docker-compose up -d --build
-
-# View logs
-docker-compose logs -f
-
-# Stop services
-docker-compose down
-```
-
-**Access:**
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
-- API Docs: http://localhost:8000/docs
-
-### Option 2: Using Start Scripts
 
 **Linux/Mac:**
 ```bash
@@ -195,6 +174,34 @@ start.bat --build
 # Start with GPU support
 start.bat --gpu
 ```
+
+**Access:**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API Docs: http://localhost:8000/docs
+
+### Option 2: Using Docker Compose
+
+Direct docker-compose commands:
+
+```bash
+# Start both services
+docker-compose up -d
+
+# Or with rebuild
+docker-compose up -d --build
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+```
+
+**Access:**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8000
+- API Docs: http://localhost:8000/docs
 
 ### Option 3: Running Backend and Frontend Separately
 
