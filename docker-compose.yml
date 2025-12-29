@@ -21,15 +21,15 @@ services:
     environment:
       - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-}
       - PYTHONUNBUFFERED=1
-    # GPU support - uncomment below if you have NVIDIA Container Toolkit installed
-    # The start.sh script will automatically enable this if NVIDIA Container Toolkit is detected
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
+    # GPU support - automatically uses GPU if NVIDIA Container Toolkit is installed
+    # If GPU is not available, Docker will ignore this and the app will run on CPU
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.settimeout(1); result=s.connect_ex(('localhost', 8000)); s.close(); exit(0 if result==0 else 1)"]
