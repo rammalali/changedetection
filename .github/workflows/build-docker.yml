@@ -7,9 +7,17 @@ on:
       - master
     paths:
       - 'Dockerfile'
+      - '.dockerignore'
       - 'requirements.txt'
       - 'api.py'
       - 'run.py'
+      - 'align.py'
+      - 'utils.py'
+      - 'data_config.py'
+      - 'main_cd.py'
+      - 'models/**'
+      - 'datasets/**'
+      - 'misc/**'
       - 'lightglue/**'
       - '.github/workflows/build-docker.yml'
   pull_request:
