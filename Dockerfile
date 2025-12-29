@@ -101,8 +101,8 @@ EXPOSE 8000
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
-ENV CUDA_VISIBLE_DEVICES=0
+# CUDA_VISIBLE_DEVICES is optional - set via docker-compose or docker run if GPU available
 
-# Run the API server
-CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]
+# Run the API server with device check
+CMD sh -c "python -c 'import torch; print(\"🚀 Starting API server...\"); print(\"✅ GPU Available:\", torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"⚠️  Running on CPU (GPU not available - slower but will work)\"); print()' && uvicorn api:app --host 0.0.0.0 --port 8000"
 
