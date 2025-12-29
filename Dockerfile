@@ -83,7 +83,12 @@ RUN cd /app/lightglue/light_glue && \
     test -f pyproject.toml && \
     pip install --no-cache-dir -e .
 
-    
+# Copy application code
+COPY api.py run.py align.py utils.py data_config.py main_cd.py /app/
+COPY models/ /app/models/
+COPY datasets/ /app/datasets/
+COPY misc/ /app/misc/
+
 # Create directories (code will be mounted as volume in development)
 RUN mkdir -p /app/checkpoints
 
