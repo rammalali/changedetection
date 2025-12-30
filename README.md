@@ -117,6 +117,14 @@ The guide includes:
 - **Frontend**: Vue.js 3, Vite
 - **Containerization**: Docker, Docker Compose
 
+## Test Data
+
+Sample test images are provided in the `data/` folder:
+- `data/A/` - "Before" images
+- `data/B/` - "After" images
+
+You can use these images to test the application through the web interface.
+
 ## Model Checkpoints
 
 Model checkpoints are **automatically downloaded** on first startup if they don't exist in `./checkpoints/ChangeFormer_DSIFN/`.
