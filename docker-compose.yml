@@ -19,8 +19,10 @@ services:
       # Optional: mount data directories if needed
       # - ./data_dir:/app/data_dir:ro
     environment:
+      - NVIDIA_VISIBLE_DEVICES=all
       - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-}
       - PYTHONUNBUFFERED=1
+      - LD_LIBRARY_PATH=/usr/local/cuda-12.4/targets/x86_64-linux/lib:/usr/local/cuda-12.4/compat:/usr/local/lib
     # GPU support - automatically uses GPU if NVIDIA Container Toolkit is installed
     # If GPU is not available, Docker will ignore this and the app will run on CPU
     deploy:
