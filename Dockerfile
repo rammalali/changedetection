@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.4.0-runtime-ubuntu22.04
+FROM nvidia/cuda:12.6.0-devel-ubuntu22.04
 
 WORKDIR /app
 
@@ -7,7 +7,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
     TZ=UTC \
     PYTHONUNBUFFERED=1 \
     NVIDIA_VISIBLE_DEVICES=all \
-    LD_LIBRARY_PATH=/usr/local/cuda-12.4/targets/x86_64-linux/lib:/usr/local/cuda-12.4/compat:/usr/local/lib:$LD_LIBRARY_PATH
+    CUDA_HOME=/usr/local/cuda \
+    PATH=/usr/local/cuda/bin:$PATH \
+    LD_LIBRARY_PATH=/usr/local/cuda/lib64:/usr/local/cuda/compat:/usr/local/lib:$LD_LIBRARY_PATH
 
 # Configure timezone
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
